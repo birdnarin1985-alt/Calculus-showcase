@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculus Showcase by ช่างเบิร์ด</title>
+    <style>
+        :root {
+            --bg: #14281d; --card: #1e3b2b; --border: #3f624d;
+            --t-text: #f0fdf4; --t-green: #86efac; --t-red: #fca5a5; --t-blue: rgba(147, 197, 253, 0.4);
+            --t-axis: #a7f3d0; --t-grid: rgba(255, 255, 255, 0.1); --t-glow: 0;
+        }
+        body.theme-whiteboard {
+            --bg: #e5e7eb; --card: #ffffff; --border: #d1d5db;
+            --t-text: #1f2937; --t-green: #059669; --t-red: #dc2626; --t-blue: rgba(59, 130, 246, 0.2);
+            --t-axis: #9ca3af; --t-grid: rgba(0, 0, 0, 0.05); --t-glow: 0;
+        }
+        body.theme-osc {
+            --bg: #050f05; --card: #0a1c0a; --border: #143314;
+            --t-text: #39ff14; --t-green: #39ff14; --t-red: #ff073a; --t-blue: rgba(57, 255, 20, 0.2);
+            --t-axis: #1f5e1f; --t-grid: rgba(57, 255, 20, 0.15); --t-glow: 12;
+        }
+        body.theme-wires {
+            --bg: #0f111a; --card: #161925; --border: #2a2e45;
+            --t-text: #e2e8f0; --t-green: #00f3ff; --t-red: #ff003c; --t-blue: rgba(255, 157, 0, 0.25); 
+            --t-axis: #475569; --t-grid: rgba(255, 255, 255, 0.05); --t-glow: 10;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--bg); color: var(--t-text);
+            margin: 0; padding: 15px; display: flex; justify-content: center;
+            transition: background-color 0.4s;
+        }
+        .container {
+            background: var(--card); width: 100%; max-width: 600px;
+            border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+            padding: 20px; box-sizing: border-box; border: 3px solid var(--border);
+            transition: 0.4s;
+        }
+        .header-box {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            border-bottom: 2px dashed var(--border); padding-bottom: 15px; margin-bottom: 15px;
+        }
+        h2 { 
+            margin: 0; font-size: 1.3rem; color: var(--t-green); line-height: 1.3; 
+            text-shadow: 0 0 calc(var(--t-glow) * 1px) var(--t-green); 
+        }
+        .controls { display: flex; gap: 8px; flex-direction: column; align-items: flex-end; }
+        button {
+            background: transparent; border: 1px solid var(--t-green); color: var(--t-green);
+            padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 0 calc(var(--t-glow) * 0.5px) var(--t-green);
+        }
+        button:active { transform: scale(0.95); }
+        
+        .canvas-container { width: 100%; height: 260px; margin-bottom: 15px; position: relative; }
+        canvas { width: 100%; height: 100%; border-radius: 6px; border: 2px solid var(--border); touch-action: none; background: var(--card); }
+        
+        select {
+            width: 100%; padding: 10px; border-radius: 6px; background: var(--bg);
+            color: var(--t-text); border: 1px solid var(--border); font-size: 0.95rem; margin-bottom: 15px;
+            outline: none; font-weight: bold;
+        }
+        
+        .slider-container { margin-bottom: 20px; }
+        input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; margin: 15px 0; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 8px; border-radius: 4px; background: var(--border); }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 28px; width: 28px; border-radius: 50%;
+            background: var(--t-green); cursor: pointer; margin-top: -10px;
+            box-shadow: 0 0 15px var(--t-green), 0 0 30px var(--t-green); border: 3px solid #fff;
+        }
+
+        .magazine-article {
+            background: rgba(0, 0, 0, 0.1); border-left: 4px solid var(--t-green);
+            padding: 15px; border-radius: 0 8px 8px 0; font-size: 0.95rem; line-height: 1.6;
+        }
+        .mag-title { font-size: 1.1rem; font-weight: bold; color: var(--t-red); margin-bottom: 5px; }
+        .mag-desc { margin-bottom: 10px; opacity: 0.9; }
+        .mag-realworld { font-style: italic; color: var(--t-blue); filter: brightness(1.5); }
+
+        .credit {
+            font-size: 0.85rem; text-align: center; color: var(--t-text);
+            line-height: 1.6; margin-top: 30px; border-top: 1px solid var(--border); padding-top: 15px;
+        }
+        .tribute { color: var(--t-green); font-weight: bold; font-size: 1rem; text-shadow: 0 0 calc(var(--t-glow) * 1px) var(--t-green); }
+
+        @media print {
+            body { background: #fff !important; color: #000 !important; padding: 0; }
+            .container { box-shadow: none !important; border: none !important; max-width: 100% !important; padding: 0 !important; }
+            .controls, select, .slider-container { display: none !important; }
+            canvas { border: 1px solid #000 !important; }
+            h2, .mag-title, .mag-realworld, .tribute { color: #000 !important; text-shadow: none !important; }
+            .magazine-article { background: none !important; border-left: 4px solid #000 !important; }
+            .credit { opacity: 1 !important; color: #000 !important; border-top: 2px solid #000 !important; }
+            * { box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-box">
+        <h2>Interactive Calculus & Numerical Methods<br><span style="font-size: 0.8rem; opacity:0.8; color: var(--t-text);">โดย ช่างเบิร์ดโคตรเฟี้ยว</span></h2>
+        <div class="controls">
+            <button id="themeToggle">🔄 เปลี่ยนธีม</button>
+            <button id="printBtn">🖨️ พิมพ์เอกสารบูชาครู</button>
+        </div>
+    </div>
+    
+    <select id="mode-selector">
+        <option value="0">บทที่ 1: อนุพันธ์ (Derivative) - อัตราการเปลี่ยนแปลง</option>
+        <option value="1">บทที่ 2: ปริพันธ์ (Numerical Integration) - กฎสี่เหลี่ยมคางหมู</option>
+        <option value="2">บทที่ 3: จุดวิกฤต (Optimization) - การหาค่าสูงสุดสัมพัทธ์</option>
+        <option value="3" selected>บทที่ 4: ชั้นครู (Newton-Raphson Method) - การหารากสมการ</option>
+    </select>
+
+    <div class="canvas-container"><canvas id="mathCanvas"></canvas></div>
+
+    <div class="slider-container">
+        <input type="range" id="x-slider" min="-2.5" max="2.5" step="0.05" value="1.5">
+    </div>
+
+    <div class="magazine-article">
+        <div class="mag-title" id="mag-title">กำลังโหลด...</div>
+        <div class="mag-desc" id="mag-desc"></div>
+        <div class="mag-realworld" id="mag-realworld"></div>
+    </div>
+
+    <div class="credit">
+        ขับเคลื่อนด้วยสถาปัตยกรรม <strong>Tri-Core Meta-Engine</strong> (Single-File Architecture)<br><br>
+        <span class="tribute">น้อมคารวะและเชิดชูเกียรติแห่งศาสตร์คอมพิวเตอร์</span><br>
+        ผลงานชิ้นนี้สร้างสรรค์ขึ้นเพื่อรำลึกถึงพระคุณอันหาที่สุดมิได้ ของครูบาอาจารย์<br>
+        <strong>แผนกเทคนิคคอมพิวเตอร์ มหาวิทยาลัยเทคโนโลยีราชมงคลล้านนา</strong><br>
+        ผู้ประสิทธิ์ประสาทวิชา ระเบียบวิธีเชิงตัวเลข (Numerical Methods) และโครงสร้างซอฟต์แวร์<br>
+        พร้อมทั้งขอบคุณประสบการณ์อันล้ำค่าจาก <strong>Jimmy Software</strong> ที่หล่อหลอมให้เกิดนวัตกรรมนี้
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mathCanvas'), ctx = canvas.getContext('2d');
+    const slider = document.getElementById('x-slider'), modeSelect = document.getElementById('mode-selector');
+    
+    const modes = [
+        {
+            func: (x) => Math.pow(x, 3) - 3*x,
+            title: "อนุพันธ์ (Derivative): ความชันและอัตราการเปลี่ยนแปลง",
+            desc: "อนุพันธ์คือการหา 'ความชัน' ของเส้นโค้ง ณ จุดใดจุดหนึ่ง บ่งบอกพฤติกรรมว่าระบบกำลังเพิ่มขึ้นหรือลดลงด้วยความเร็วเท่าใด",
+            realworld: "💡 ประยุกต์ใช้: วิศวกรใช้อนุพันธ์หาความเร็วจากระยะทาง หรือประเมินอัตราการไหลของน้ำในระบบชลประทานอัจฉริยะ"
+        },
+        {
+            func: (x) => -Math.pow(x, 2) + 4,
+            title: "ปริพันธ์เชิงตัวเลข (Trapezoidal Rule): การสะสมพื้นที่",
+            desc: "การหาพื้นที่ใต้โค้งด้วยคอมพิวเตอร์โดยการซอยพื้นที่เป็น 'สี่เหลี่ยมคางหมู' เล็กๆ อนันต์ชิ้นแล้วนำมารวมกัน (Numerical Integration)",
+            realworld: "💡 ประยุกต์ใช้: คำนวณปริมาตรดินตัด/ดินถม (Cut & Fill) ในงานโยธา หรือหาพื้นที่ของแปลงเกษตรที่มีรูปทรงอิสระ"
+        },
+        {
+            func: (x) => Math.sin(x) * 3,
+            title: "การหาค่าเหมาะที่สุด (Optimization): จุดวิกฤต",
+            desc: "เมื่อความชัน (อนุพันธ์) เท่ากับ 0 เส้นสัมผัสจะขนานแกน X ชี้ให้เห็นถึงจุดที่ระบบมีค่าสูงสุดหรือต่ำสุดทางคณิตศาสตร์",
+            realworld: "💡 ประยุกต์ใช้: การคำนวณส่วนผสมปุ๋ยให้ได้ผลผลิตสูงสุด หรือการตัดวัสดุก่อสร้างให้เหลือเศษทิ้งน้อยที่สุด"
+        },
+        {
+            func: (x) => Math.pow(x, 2) - 2, // หาค่ารากที่สองของ 2
+            title: "ระเบียบวิธีเชิงตัวเลข (Newton-Raphson Method)",
+            desc: "ศาสตร์ชั้นครูแห่งวิทยาการคอมพิวเตอร์! ใช้อนุพันธ์สร้างเส้นสัมผัสเพื่อ 'เดาและขยับ' หาจุดที่กราฟตัดแกน X (รากของสมการ) อย่างรวดเร็ว สมการ x_n+1 = x_n - f(x_n)/f'(x_n)",
+            realworld: "💡 ประยุกต์ใช้: อัลกอริทึมฝังตัวใน GPS, การจำลองทางวิศวกรรม, และการ Training AI (Gradient Descent) ล้วนมีรากฐานมาจากวิธีนี้"
+        }
+    ];
+
+    let currentMode = 3; // เริ่มต้นด้วยบทที่ 4 (Newton-Raphson) โชว์ความขลังทันที
+
+    const themes = ['', 'theme-whiteboard', 'theme-osc', 'theme-wires'];
+    let themeIndex = 0;
+    document.getElementById('themeToggle').addEventListener('click', () => {
+        document.body.className = ''; 
+        themeIndex = (themeIndex + 1) % themes.length;
+        if(themes[themeIndex]) document.body.classList.add(themes[themeIndex]);
+        updateEngine(); 
+    });
+
+    document.getElementById('printBtn').addEventListener('click', () => {
+        document.body.className = 'theme-whiteboard'; 
+        setTimeout(() => window.print(), 300);
+    });
+
+    function setupCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr); canvas.style.width = `${rect.width}px`; canvas.style.height = `${rect.height}px`;
+    }
+
+    function getDerivative(x) { const h = 0.0001; return (modes[currentMode].func(x + h) - modes[currentMode].func(x)) / h; }
+    function getIntegral(endX) {
+        let area = 0; const steps = 100; const dx = endX / steps;
+        for(let i = 0; i < steps; i++) { area += (modes[currentMode].func(i * dx) + modes[currentMode].func((i + 1) * dx)) / 2 * dx; }
+        return endX < 0 ? -area : area;
+    }
+
+    function drawGraph(currentX) {
+        setupCanvas(); 
+        const css = (name) => getComputedStyle(document.body).getPropertyValue(name).trim();
+        const cAxis = css('--t-axis'), cGrid = css('--t-grid'), cGreen = css('--t-green');
+        const cRed = css('--t-red'), cBlue = css('--t-blue'), glow = parseInt(css('--t-glow')) || 0;
+
+        const w = canvas.getBoundingClientRect().width, h = canvas.getBoundingClientRect().height;
+        const scaleX = w / 6.5, scaleY = h / 10; 
+        const offsetX = w / 2, offsetY = h / 2;
+        const toX = (x) => offsetX + (x * scaleX), toY = (y) => offsetY - (y * scaleY);
+        const f = modes[currentMode].func;
+
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+        // Grid & Axis
+        ctx.strokeStyle = cGrid; ctx.lineWidth = 1; ctx.beginPath();
+        for(let i = -3; i <= 3; i++) { ctx.moveTo(toX(i), 0); ctx.lineTo(toX(i), h); }
+        for(let j = -5; j <= 5; j+=1) { ctx.moveTo(0, toY(j)); ctx.lineTo(w, toY(j)); }
+        ctx.stroke();
+
+        ctx.strokeStyle = cAxis; ctx.lineWidth = 1.5; ctx.beginPath();
+        ctx.moveTo(0, offsetY); ctx.lineTo(w, offsetY); ctx.moveTo(offsetX, 0); ctx.lineTo(offsetX, h);
+        ctx.stroke();
+
+        // Mode 1: Integral Area
+        if (currentMode === 1) {
+            ctx.fillStyle = cBlue; ctx.beginPath(); ctx.moveTo(toX(0), toY(0));
+            let step = currentX > 0 ? 0.05 : -0.05;
+            for(let x = 0; Math.abs(x) <= Math.abs(currentX); x += step) ctx.lineTo(toX(x), toY(f(x)));
+            ctx.lineTo(toX(currentX), toY(0)); ctx.fill();
+        }
+
+        // Main Line
+        ctx.beginPath();
+        for(let x = -3.2; x <= 3.2; x += 0.05) {
+            let cx = toX(x), cy = toY(f(x));
+            if(x === -3.2) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+        }
+        
+        if (glow > 0) {
+            ctx.shadowBlur = glow * 1.5; ctx.shadowColor = cGreen; ctx.strokeStyle = cGreen; ctx.lineWidth = 6; ctx.stroke();
+            ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+        } else { ctx.shadowBlur = 0; ctx.strokeStyle = cGreen; ctx.lineWidth = 4; ctx.stroke(); }
+
+        // Tangent & Newton-Raphson Logic
+        const slope = getDerivative(currentX), yPoint = f(currentX);
+        
+        if (currentMode === 3) {
+            // วาดกราฟิกชั้นครู: Newton-Raphson Projection สู่แกน X
+            const xNext = currentX - (yPoint / slope); // สูตร x_n+1 = x_n - f(x_n)/f'(x_n)
+            
+            // เส้นประชี้ลงแกน X (Projection line)
+            ctx.setLineDash([5, 5]); ctx.strokeStyle = cBlue.replace(/[^,]+(?=\))/, '1'); ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(toX(currentX), toY(yPoint)); ctx.lineTo(toX(currentX), toY(0)); ctx.stroke();
+            
+            // เส้นสัมผัสตัดแกน X
+            ctx.setLineDash([]); ctx.strokeStyle = cRed; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(toX(currentX), toY(yPoint)); ctx.lineTo(toX(xNext), toY(0)); ctx.stroke();
+            
+            // วงกลมจุดรากสมการที่คาดเดา (Root Guess)
+            ctx.fillStyle = '#ff9d00'; ctx.beginPath(); ctx.arc(toX(xNext), toY(0), 6, 0, Math.PI*2); ctx.fill();
+            
+            // Text HUD สำหรับ Newton Method
+            ctx.fillStyle = css('--t-text'); ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(`x_n+1 = ${xNext.toFixed(4)}`, toX(xNext) + 10, toY(0) - 10);
+        } else {
+            // Tangent ปกติ
+            ctx.beginPath(); ctx.moveTo(toX(currentX - 1), toY(yPoint - slope)); ctx.lineTo(toX(currentX + 1), toY(yPoint + slope));
+            if (glow > 0) {
+                ctx.shadowBlur = glow; ctx.shadowColor = cRed; ctx.strokeStyle = cRed; ctx.lineWidth = 5; ctx.stroke();
+                ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+            } else { ctx.shadowBlur = 0; ctx.strokeStyle = cRed; ctx.lineWidth = 3; ctx.stroke(); }
+        }
+
+        // Pointer
+        ctx.fillStyle = (glow > 0) ? '#ffffff' : cRed; ctx.beginPath(); ctx.arc(toX(currentX), toY(yPoint), 5, 0, Math.PI*2); ctx.fill();
+
+        // Standard HUD
+        ctx.shadowBlur = 0; ctx.font = 'bold 12px sans-serif'; const txtColor = css('--t-text');
+        ctx.fillStyle = txtColor; ctx.fillText(`x: ${currentX.toFixed(2)}, f(x): ${yPoint.toFixed(2)}`, toX(currentX) + 12, toY(yPoint) - 15);
+        if(currentMode !== 3) {
+            ctx.fillStyle = cRed; ctx.fillText(`f'(x): ${slope.toFixed(2)}`, toX(currentX) + 12, toY(yPoint) + 5);
+        }
+    }
+
+    function updateMagazine() {
+        document.getElementById('mag-title').textContent = modes[currentMode].title;
+        document.getElementById('mag-desc').textContent = modes[currentMode].desc;
+        document.getElementById('mag-realworld').textContent = modes[currentMode].realworld;
+    }
+
+    function updateEngine() { drawGraph(parseFloat(slider.value)); }
+    
+    modeSelect.addEventListener('change', (e) => {
+        currentMode = parseInt(e.target.value);
+        slider.value = 1.5; updateMagazine(); updateEngine();
+    });
+    
+    slider.addEventListener('input', updateEngine);
+    window.addEventListener('resize', updateEngine);
+    updateMagazine(); updateEngine(); 
+</script>
+
+</body>
+</html>
