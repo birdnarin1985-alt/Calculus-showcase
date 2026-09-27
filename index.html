@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advanced Calculus Sandbox by ช่างเบิร์ด</title>
+    <style>
+        :root {
+            --primary: #10b981; 
+            --accent: #ef4444;
+            --bg: #111827; /* เปลี่ยนเป็นโหมด Dark Mode ให้ดูขลังและโปรขึ้น */
+            --card: #1f2937;
+            --text: #f9fafb;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: var(--card);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--primary);
+            text-align: center;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 10px;
+        }
+        canvas {
+            background: #111827;
+            border-radius: 8px;
+            width: 100%;
+            height: 200px;
+            border: 1px solid #374151;
+            margin-bottom: 15px;
+            touch-action: none; /* ป้องกันการเลื่อนจอตอนถูบนกราฟ */
+        }
+        .panel {
+            background: #374151;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+        }
+        .grid-result {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .result-box {
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .result-title {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+        .result-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .val-slope { color: var(--accent); }
+        .val-area { color: #3b82f6; }
+        .credit {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+        .highlight { color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ฟาร์มแคลคูลัส (ระดับเทพ) 🌿</h2>
+    
+    <!-- Visualizer Kernel -->
+    <canvas id="mathCanvas" width="360" height="200"></canvas>
+
+    <!-- Input Kernel -->
+    <div class="panel">
+        <label>ฟังก์ชัน: f(x) = x³ - 4x</label>
+        <label for="x-slider" style="margin-top: 15px; color: var(--primary);">จุดแกน x: <span id="x-val">0.00</span></label>
+        <input type="range" id="x-slider" min="-3" max="3" step="0.05" value="1">
+    </div>
+
+    <!-- Data Engine Results -->
+    <div class="grid-result">
+        <div class="result-box">
+            <div class="result-title">ความชัน (Derivative)</div>
+            <div class="result-val val-slope" id="dx-result">0.00</div>
+        </div>
+        <div class="result-box">
+            <div class="result-title">พื้นที่ (Integral 0 ถึง x)</div>
+            <div class="result-val val-area" id="int-result">0.00</div>
+        </div>
+    </div>
+
+    <div class="credit" style="margin-top: 20px;">
+        ขับเคลื่อนด้วย <span class="highlight">Tri-Core Meta-Engine</span><br>
+        สถาปัตยกรรมโดย ช่างเบิร์ด<br>
+        ด้วยความภาคภูมิใจในรากฐานจาก<br>
+        <span style="color: white;">มทร.ล้านนา & Jimmy Software</span>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('x-slider');
+    
+    const xValDisp = document.getElementById('x-val');
+    const dxResultDisp = document.getElementById('dx-result');
+    const intResultDisp = document.getElementById('int-result');
+
+    // 1. Math Kernel
+    function f(x) {
+        return Math.pow(x, 3) - (4 * x);
+    }
+
+    // ระเบียบวิธีเชิงตัวเลข: หาความชัน (Numerical Derivative)
+    function getDerivative(x) {
+        const h = 0.0001;
+        return (f(x + h) - f(x)) / h;
+    }
+
+    // ระเบียบวิธีเชิงตัวเลข: หาพื้นที่ใต้กราฟ (Numerical Integration - Trapezoidal Rule)
+    function getIntegral(endX) {
+        let area = 0;
+        const steps = 100;
+        const startX = 0;
+        const dx = (endX - startX) / steps;
+        for(let i = 0; i < steps; i++) {
+            let x1 = startX + (i * dx);
+            let x2 = startX + ((i + 1) * dx);
+            area += (f(x1) + f(x2)) / 2 * dx;
+        }
+        return endX < 0 ? -area : area;
+    }
+
+    // 2. Visual Render Engine
+    function drawGraph(currentX) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const scaleX = canvas.width / 6;  // Range -3 to 3
+        const scaleY = canvas.height / 12; // Range -6 to 6
+        const offsetX = canvas.width / 2;
+        const offsetY = canvas.height / 2;
+
+        const toCanvasX = (x) => offsetX + (x * scaleX);
+        const toCanvasY = (y) => offsetY - (y * scaleY);
+
+        // วาดแกน X, Y
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, offsetY); ctx.lineTo(canvas.width, offsetY);
+        ctx.moveTo(offsetX, 0); ctx.lineTo(offsetX, canvas.height);
+        ctx.stroke();
+
+        // วาดพื้นที่ใต้กราฟ (Integral)
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(toCanvasX(0), toCanvasY(0));
+        let step = currentX > 0 ? 0.05 : -0.05;
+        for(let x = 0; Math.abs(x) <= Math.abs(currentX); x += step) {
+            ctx.lineTo(toCanvasX(x), toCanvasY(f(x)));
+        }
+        ctx.lineTo(toCanvasX(currentX), toCanvasY(0));
+        ctx.fill();
+
+        // วาดเส้นกราฟฟังก์ชัน
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for(let x = -3; x <= 3; x += 0.05) {
+            let cx = toCanvasX(x);
+            let cy = toCanvasY(f(x));
+            if(x === -3) ctx.moveTo(cx, cy);
+            else ctx.lineTo(cx, cy);
+        }
+        ctx.stroke();
+
+        // วาดเส้นสัมผัสความชัน (Tangent Line)
+        const slope = getDerivative(currentX);
+        const yPoint = f(currentX);
+        ctx.strokeStyle = '#ef4444';
+        ctx.beginPath();
+        // สร้างจุดปลาย 2 ด้านของเส้นสัมผัส
+        const xLen = 1; 
+        ctx.moveTo(toCanvasX(currentX - xLen), toCanvasY(yPoint - (slope * xLen)));
+        ctx.lineTo(toCanvasX(currentX + xLen), toCanvasY(yPoint + (slope * xLen)));
+        ctx.stroke();
+
+        // วาดจุดปัจจุบัน
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(toCanvasX(currentX), toCanvasY(yPoint), 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // 3. Fluid UI Connector
+    function updateEngine() {
+        const x = parseFloat(slider.value);
+        
+        xValDisp.textContent = x.toFixed(2);
+        dxResultDisp.textContent = getDerivative(x).toFixed(2);
+        intResultDisp.textContent = getIntegral(x).toFixed(2);
+        
+        drawGraph(x);
+    }
+
+    slider.addEventListener('input', updateEngine);
+    updateEngine(); // Run ครั้งแรก
+</script>
+
+</body>
+</html>
