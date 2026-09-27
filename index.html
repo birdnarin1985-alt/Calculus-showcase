@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculus Showcase by ช่างเบิร์ด</title>
+    <style>
+        /* ระบบ 4 ธีมโคตรเฟี้ยว */
+        :root {
+            /* 1. Chalkboard (Default) */
+            --bg: #14281d; --card: #1e3b2b; --border: #3f624d;
+            --t-text: #f0fdf4; --t-green: #86efac; --t-red: #fca5a5; --t-blue: rgba(147, 197, 253, 0.4);
+            --t-axis: #a7f3d0; --t-grid: rgba(255, 255, 255, 0.1); --t-glow: 0px;
+        }
+        body.theme-whiteboard {
+            /* 2. Whiteboard */
+            --bg: #e5e7eb; --card: #ffffff; --border: #d1d5db;
+            --t-text: #1f2937; --t-green: #059669; --t-red: #dc2626; --t-blue: rgba(59, 130, 246, 0.2);
+            --t-axis: #9ca3af; --t-grid: rgba(0, 0, 0, 0.05); --t-glow: 0px;
+        }
+        body.theme-osc {
+            /* 3. Oscilloscope ยุคเก่า (CRT Green Phosphor) */
+            --bg: #050f05; --card: #0a1c0a; --border: #143314;
+            --t-text: #39ff14; --t-green: #39ff14; --t-red: #39ff14; --t-blue: rgba(57, 255, 20, 0.2);
+            --t-axis: #1f5e1f; --t-grid: rgba(57, 255, 20, 0.15); --t-glow: 6px;
+        }
+        body.theme-wires {
+            /* 4. สายไฟ (Cyberpunk Copper & Cyan Wires) */
+            --bg: #0f111a; --card: #161925; --border: #2a2e45;
+            --t-text: #e2e8f0; --t-green: #ff9d00; /* ทองแดง */ --t-red: #f43f5e; /* สายไฟแดง */ --t-blue: rgba(0, 243, 255, 0.25); /* สายไฟฟ้า */
+            --t-axis: #475569; --t-grid: rgba(255, 255, 255, 0.05); --t-glow: 3px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--bg); color: var(--t-text);
+            margin: 0; padding: 15px; display: flex; justify-content: center;
+            transition: background-color 0.3s;
+        }
+        .container {
+            background: var(--card); width: 100%; max-width: 400px;
+            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            padding: 20px; box-sizing: border-box; border: 3px solid var(--border);
+            transition: 0.3s;
+        }
+        .header-box {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px dashed var(--border); padding-bottom: 10px; margin-bottom: 15px;
+        }
+        h2 { margin: 0; font-size: 1.1rem; color: var(--t-green); line-height: 1.2; text-shadow: 0 0 var(--t-glow) var(--t-green); }
+        .theme-btn {
+            background: transparent; border: 1px solid var(--t-green); color: var(--t-green);
+            padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;
+            cursor: pointer; transition: 0.2s; text-shadow: 0 0 var(--t-glow) var(--t-green);
+            box-shadow: 0 0 var(--t-glow) var(--t-green);
+        }
+        .theme-btn:active { transform: scale(0.9); }
+        
+        .canvas-container {
+            width: 100%; height: 260px; /* ขยายให้สูงขึ้นเพื่อวางตัวเลข */
+            margin-bottom: 20px; position: relative;
+        }
+        canvas {
+            width: 100%; height: 100%; border-radius: 4px;
+            border: 1px solid var(--border); touch-action: none;
+            background: var(--card);
+        }
+        
+        /* สไลเดอร์เรืองแสงสุดเฟี้ยว */
+        .slider-container { margin-top: 10px; }
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; background: transparent; margin: 15px 0; outline: none;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%; height: 6px; border-radius: 3px;
+            background: var(--border);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            height: 24px; width: 24px; border-radius: 50%;
+            background: var(--t-green); cursor: pointer; margin-top: -9px;
+            box-shadow: 0 0 10px var(--t-green), 0 0 20px var(--t-green); /* ไฟเรืองแสง */
+            border: 2px solid var(--card);
+            transition: 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
+
+        .credit {
+            font-size: 0.75rem; text-align: center; color: var(--t-text);
+            opacity: 0.7; line-height: 1.6; margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-box">
+        <h2>Calculus Showcase<br><span style="font-size: 0.75rem; opacity:0.8; color: var(--t-text);">by ช่างเบิร์ดโคตรเฟี้ยว</span></h2>
+        <button class="theme-btn" id="themeToggle">🔄 เปลี่ยนธีม</button>
+    </div>
+    
+    <!-- Canvas Viewport -->
+    <div class="canvas-container">
+        <canvas id="mathCanvas"></canvas>
+    </div>
+
+    <!-- Glowing Slider Kernel (ไม่มีตัวเลขรกๆ แล้ว) -->
+    <div class="slider-container">
+        <div style="text-align: center; font-size: 0.85rem; font-weight: bold; color: var(--t-green); text-shadow: 0 0 var(--t-glow) var(--t-green);">
+            <span id="theme-name">ธีม: กระดานชอล์ก</span>
+        </div>
+        <input type="range" id="x-slider" min="-3" max="3" step="0.05" value="1.5">
+    </div>
+
+    <div class="credit">
+        ขับเคลื่อนด้วย <span style="color: var(--t-green); font-weight: bold;">Tri-Core Meta-Engine</span><br>
+        ขอขอบคุณและให้เครดิตการประสิทธิ์ประสาทวิชาจาก<br>
+        <span style="font-weight: bold; opacity: 1;">แผนกเทคนิคคอมพิวเตอร์ มทร.ล้านนา</span> & <span style="font-weight: bold; opacity: 1;">Jimmy Software</span>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('x-slider');
+    const themeBtn = document.getElementById('themeToggle');
+    const themeNameDisp = document.getElementById('theme-name');
+
+    // ระบบสลับ 4 ธีม
+    const themes = ['', 'theme-whiteboard', 'theme-osc', 'theme-wires'];
+    const themeNames = ['กระดานชอล์ก', 'กระดานไวท์บอร์ด', 'ออสซิลโลสโคป', 'สายไฟอิเล็กทรอนิกส์'];
+    let currentTheme = 0;
+
+    themeBtn.addEventListener('click', () => {
+        document.body.className = ''; // reset
+        currentTheme = (currentTheme + 1) % themes.length;
+        if(themes[currentTheme]) document.body.classList.add(themes[currentTheme]);
+        themeNameDisp.textContent = `ธีม: ${themeNames[currentTheme]}`;
+        updateEngine(); 
+    });
+
+    // แก้ปัญหา Canvas เบลอ! ทำให้เส้นคมกริบ (Retina Display Fix)
+    function setupCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${rect.height}px`;
+    }
+
+    // 1. Math Kernel
+    function f(x) { return Math.pow(x, 3) - (4 * x); }
+    function getDerivative(x) { const h = 0.0001; return (f(x + h) - f(x)) / h; }
+    function getIntegral(endX) {
+        let area = 0; const steps = 100; const dx = endX / steps;
+        for(let i = 0; i < steps; i++) {
+            area += (f(i * dx) + f((i + 1) * dx)) / 2 * dx;
+        }
+        return endX < 0 ? -area : area;
+    }
+
+    // 2. Visual Render Engine
+    function drawGraph(currentX) {
+        setupCanvas(); // จัดการ Scale ทุกครั้งที่วาด เพื่อความคมชัดสูงสุด
+        
+        const css = (name) => getComputedStyle(document.body).getPropertyValue(name).trim();
+        const cAxis = css('--t-axis'), cGrid = css('--t-grid'), cGreen = css('--t-green');
+        const cRed = css('--t-red'), cBlue = css('--t-blue');
+        const glow = parseInt(css('--t-glow')) || 0;
+
+        const w = canvas.getBoundingClientRect().width;
+        const h = canvas.getBoundingClientRect().height;
+        const scaleX = w / 6.5; const scaleY = h / 14; 
+        const offsetX = w / 2; const offsetY = h / 2;
+
+        const toX = (x) => offsetX + (x * scaleX);
+        const toY = (y) => offsetY - (y * scaleY);
+
+        ctx.lineJoin = 'round'; // ลบมุมเส้นกราฟให้คมและสวย
+
+        // ระบบแสง Glow (ใช้เฉพาะธีม Oscilloscope/สายไฟ)
+        ctx.shadowBlur = glow;
+        ctx.shadowColor = cGreen;
+
+        // --- วาด Grid & Axis ---
+        ctx.strokeStyle = cGrid; ctx.lineWidth = 1; ctx.beginPath();
+        for(let i = -3; i <= 3; i++) { ctx.moveTo(toX(i), 0); ctx.lineTo(toX(i), h); }
+        for(let j = -6; j <= 6; j+=2) { ctx.moveTo(0, toY(j)); ctx.lineTo(w, toY(j)); }
+        ctx.stroke();
+
+        ctx.strokeStyle = cAxis; ctx.lineWidth = 1.5; ctx.beginPath();
+        ctx.moveTo(0, offsetY); ctx.lineTo(w, offsetY);
+        ctx.moveTo(offsetX, 0); ctx.lineTo(offsetX, h);
+        for(let i = -3; i <= 3; i++) { ctx.moveTo(toX(i), offsetY-3); ctx.lineTo(toX(i), offsetY+3); }
+        for(let j = -6; j <= 6; j+=2) { ctx.moveTo(offsetX-3, toY(j)); ctx.lineTo(offsetX+3, toY(j)); }
+        ctx.stroke();
+
+        // --- วาดพื้นที่ใต้กราฟ (Integral) ---
+        ctx.shadowBlur = 0; // ปิดแสงตอนวาดพื้นที่
+        ctx.fillStyle = cBlue; ctx.beginPath();
+        ctx.moveTo(toX(0), toY(0));
+        let step = currentX > 0 ? 0.05 : -0.05;
+        for(let x = 0; Math.abs(x) <= Math.abs(currentX); x += step) ctx.lineTo(toX(x), toY(f(x)));
+        ctx.lineTo(toX(currentX), toY(0)); ctx.fill();
+
+        // --- วาดเส้นฟังก์ชัน ---
+        ctx.shadowBlur = glow; ctx.shadowColor = cGreen;
+        ctx.strokeStyle = cGreen; ctx.lineWidth = 2.5; ctx.beginPath();
+        for(let x = -3.2; x <= 3.2; x += 0.05) {
+            let cx = toX(x), cy = toY(f(x));
+            if(x === -3.2) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+        }
+        ctx.stroke();
+
+        // --- วาดเส้นสัมผัส (Derivative) ---
+        const slope = getDerivative(currentX);
+        const yPoint = f(currentX);
+        ctx.shadowColor = cRed;
+        ctx.strokeStyle = cRed; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.moveTo(toX(currentX - 1), toY(yPoint - slope));
+        ctx.lineTo(toX(currentX + 1), toY(yPoint + slope));
+        ctx.stroke();
+
+        // วาดจุด
+        ctx.fillStyle = cRed; ctx.beginPath();
+        ctx.arc(toX(currentX), toY(yPoint), 5, 0, Math.PI*2); ctx.fill();
+
+        // === วาด HUD ตัวเลขวิ่งตามกราฟ ===
+        ctx.shadowBlur = 0; // ปิดเงาให้ตัวเลขอ่านง่าย
+        ctx.font = 'bold 12px sans-serif';
+        const txtColor = css('--t-text');
+        
+        // 1. ค่า f(x) และ ความชัน วิ่งตามจุด
+        ctx.fillStyle = txtColor;
+        ctx.fillText(`x: ${currentX.toFixed(2)}, f(x): ${yPoint.toFixed(2)}`, toX(currentX) + 10, toY(yPoint) - 15);
+        ctx.fillStyle = cRed;
+        ctx.fillText(`m (ความชัน): ${slope.toFixed(2)}`, toX(currentX) + 10, toY(yPoint) + 5);
+
+        // 2. ค่าพื้นที่ (Area) วิ่งตามพื้นที่ใต้โค้ง
+        const areaVal = getIntegral(currentX);
+        if(Math.abs(currentX) > 0.2) {
+            // คำนวณจุดกึ่งกลางของพื้นที่เพื่อแปะตัวเลข
+            const midX = currentX / 2;
+            const midY = f(midX) / 2;
+            ctx.fillStyle = txtColor;
+            ctx.textAlign = 'center';
+            // สร้างพื้นหลังให้ตัวเลขอ่านง่าย
+            ctx.fillStyle = css('--card');
+            ctx.fillRect(toX(midX) - 35, toY(midY) - 10, 70, 16);
+            ctx.fillStyle = cBlue.replace(/[^,]+(?=\))/, '1'); // ดึงสีทึบของสีฟ้ามาใช้
+            ctx.fillText(`Area: ${areaVal.toFixed(2)}`, toX(midX), toY(midY) + 2);
+            ctx.textAlign = 'left'; // reset
+        }
+    }
+
+    function updateEngine() { drawGraph(parseFloat(slider.value)); }
+    slider.addEventListener('input', updateEngine);
+    
+    // วาดกราฟตอนโหลดและตอนหมุนจอ
+    window.addEventListener('resize', updateEngine);
+    updateEngine(); 
+</script>
+
+</body>
+</html>
